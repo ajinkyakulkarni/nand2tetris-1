@@ -1,0 +1,12 @@
+#!/bin/bash
+
+command -v rerun >/dev/null 2>&1 || {
+    printf "The program 'rerun' is required. To install rerun, type:\n"
+    printf "    gem install rerun\n"
+    printf "or visit https://github.com/alexch/rerun\n"
+    exit 1
+}
+
+cd $(dirname "${0}")
+
+rerun --exit --name "Test $1" --pattern "**/*.hdl" -- HardwareSimulator.sh "$1"
