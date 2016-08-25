@@ -1,0 +1,15 @@
+#!/bin/bash
+
+blue='\033[1;34m'
+nocolor='\033[0m'
+
+cd $(dirname "${0}")
+
+for i in $(ls -d */); do
+    chapter=${i%%/}
+    printf "${blue}Chapter ${chapter}${nocolor}\n"
+    for testfile in $(find "$chapter" -name "*.tst"); do
+        printf "${testfile} - "
+        HardwareSimulator.sh "$testfile"
+    done
+done
