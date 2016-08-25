@@ -1,0 +1,20 @@
+/**
+ * 16-bit manipulator: 
+ * out = in       if zero == 0 and not == 0
+ *       zero     if zero == 1 and not == 0
+ *       not in   if zero == 0 and not == 1
+ *       not zero if zero == 1 and not == 1
+ */
+
+CHIP Manip16 {
+    IN  in[16], // 16-bit input
+        zero,   // zero the input?
+        not;    // negate the input?
+
+    OUT out[16];
+
+    PARTS:
+    Mux16(a=in, b=false, sel=zero, out=tmp);
+    Not16(in=tmp, out=ntmp);
+    Mux16(a=tmp, b=ntmp, sel=not, out=out);
+}
