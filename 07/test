@@ -15,7 +15,7 @@ cd $(dirname "${0}")
 for testfile in $(find * -name '*.tst' ! -name '*VME.tst'); do
     printf "${blue}→${nocolor} Test $testfile\n"
 
-    if [ $testfile != "StackArithmetic/SimpleAdd/SimpleAdd.tst" ]; then
+    if [ $testfile != "StackArithmetic/StackTest/StackTest.tst" ]; then
         printf "Skip - Requires GUI\n"
         continue
     fi
