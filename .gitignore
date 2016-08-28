@@ -3,9 +3,15 @@ node_modules/
 *.cmp
 *.out
 *.tst
-*.hack
+
+04/*/*.hack
+
+05/*.hack
 
 06/add/
 06/max/
 06/pong/
 06/rect/
+
+07/MemoryAccess
+07/StackArithmetic
