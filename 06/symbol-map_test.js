@@ -1,4 +1,4 @@
-import SymbolMap from './symbol';
+import SymbolMap from './symbol-map';
 
 const assert = require('assert');
 

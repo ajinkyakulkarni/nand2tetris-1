@@ -1,36 +1,36 @@
-import {dest, comp, jump} from './code';
+import {translateDest, translateComp, translateJump} from './translator';
 
 const assert = require('assert');
 const inspect = require('util').inspect;
 
 const tests = [
     {
-        fn: dest,
+        fn: translateDest,
         mnemonic: '',
         code: '000'
     },
     {
-        fn: dest,
+        fn: translateDest,
         mnemonic: 'MD',
         code: '011'
     },
     {
-        fn: comp,
+        fn: translateComp,
         mnemonic: '0',
         code: '0101010'
     },
     {
-        fn: comp,
+        fn: translateComp,
         mnemonic: 'D+M',
         code: '1000010'
     },
     {
-        fn: jump,
+        fn: translateJump,
         mnemonic: '',
         code: '000'
     },
     {
-        fn: jump,
+        fn: translateJump,
         mnemonic: 'JGE',
         code: '011'
     }

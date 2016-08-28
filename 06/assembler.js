@@ -1,8 +1,8 @@
-import {dest, comp, jump} from './code';
+import {translateDest, translateComp, translateJump} from './translator';
 import parse from './parser';
-import SymbolMap from './symbol';
+import SymbolMap from './symbol-map';
 
-export default function translate(assembly) {
+export default function assemble(assembly) {
     const lines = assembly.split(/(\r|\n)/);
     const commands = lines.map(parse).filter(command => command !== null);
     const symbolMap = new SymbolMap();
@@ -46,7 +46,8 @@ export default function translate(assembly) {
             }
 
             case 'C': {
-                const binary = '111' + comp(command.comp) + dest(command.dest) + jump(command.jump);
+                const binary = '111' + translateComp(command.comp) + translateDest(command.dest) +
+                    translateJump(command.jump);
                 translatedCommands.push(binary);
                 break;
             }
@@ -57,5 +58,8 @@ export default function translate(assembly) {
         }
     }
 
-    return translatedCommands.join('\n') + '\n';
+    // Add newline at the end.
+    translatedCommands.push('');
+
+    return translatedCommands.join('\n');
 }

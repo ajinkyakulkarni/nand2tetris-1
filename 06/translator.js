@@ -51,6 +51,6 @@ const jumps = {
     'JMP': '111'
 };
 
-export const dest = mnemonic => dests[mnemonic];
-export const comp = mnemonic => comps[mnemonic];
-export const jump = mnemonic => jumps[mnemonic];
+export const translateDest = mnemonic => dests[mnemonic];
+export const translateComp = mnemonic => comps[mnemonic];
+export const translateJump = mnemonic => jumps[mnemonic];
