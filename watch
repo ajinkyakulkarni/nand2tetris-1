@@ -1,18 +1,48 @@
 #!/bin/bash
 
+function usage {
+    printf "Usage: $0 <script.tst>\n"
+}
+
+if [ "$#" -ne 1 ] || [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+    usage
+    exit 1
+fi
+
 command -v fswatch >/dev/null 2>&1 || {
-    printf "The program `fswatch` is required: https://github.com/emcrisostomo/fswatch\n"
+    printf "`fswatch` is required: https://github.com/emcrisostomo/fswatch\n"
     exit 1
 }
 
 cd $(dirname "${0}")
 
-testfile="$1"
-printf "Test $testfile and watch for *.hdl file changes\n"
+testfilepath="$1"
+testfilebase="${testfilepath%.*}"
+testfileext="${testfilepath##*.}"
 
-function test {
-    HardwareSimulator.sh "$testfile"
-}
+if [ "$testfileext" != "tst" ]; then
+    printf "Invalid file extension: $testfileext\n"
+    usage
+    exit 1
+fi
+
+if [ -f "$testfilebase".asm ]; then
+    watchpattern="\\.asm$"
+    function test {
+        Assembler.sh "$testfilebase".asm
+        CPUEmulator.sh "$testfilepath"
+    }
+elif [ -f "$testfilebase".hdl ]; then
+    watchpattern="\\.hdl$"
+    function test {
+        HardwareSimulator.sh "$testfilepath"
+    }
+else
+    printf "Cannot find source file to watch\n"
+    exit 1
+fi
+
+printf "Test $testfilepath and watch $watchpattern\n\n"
 
 test
-fswatch -e ".*" -i "\\.hdl$" . | (while read; do test; done)
+fswatch -e ".*" -i "$watchpattern" . | (while read; do printf "\n"; test; done)
