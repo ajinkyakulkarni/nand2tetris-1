@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+blue='\033[1;34m'
+nocolor='\033[0m'
+
+cd $(dirname "${0}")
+
+for testfile in $(ls *_test.js); do
+    printf "${blue}→${nocolor} Test $testfile\n"
+    ../node_modules/.bin/babel-node --presets es2015 "$testfile"
+done
+
+for testfile in $(find * -name '*.asm'); do
+    printf "${blue}→${nocolor} Test $testfile\n"
+
+    testfilebase="${testfile%.*}"
+    hackfile="$testfilebase".hack
+    hackfilebuiltin="$testfilebase".builtin.hack
+    hackfilediy="$testfilebase".diy.hack
+
+    Assembler.sh "$testfile"
+    mv "$hackfile" "$hackfilebuiltin"
+
+    ../node_modules/.bin/babel-node --presets es2015 assembler-cli.js "$testfile"
+    mv "$hackfile" "$hackfilediy"
+
+    diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \
+        --new-line-format="    diy line %dn: %L" "$hackfilebuiltin" "$hackfilediy"
+
+    printf "Files match.\n"
+done

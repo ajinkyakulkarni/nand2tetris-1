@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+blue='\033[1;34m'
+nocolor='\033[0m'
+
+cd $(dirname "${0}")
+
+for testfile in $(find * -name '*.tst'); do
+    printf "${blue}→${nocolor} Test $testfile\n"
+    HardwareSimulator.sh "$testfile"
+done

@@ -5,63 +5,25 @@ green='\033[1;32m'
 blue='\033[1;34m'
 nocolor='\033[0m'
 
-function usage {
-    printf "Usage: $0 [script.tst]\n"
-    printf "Tests the script passed as argument, or all scripts if there is no argument.\n"
-}
-
-if [ "$#" -gt 1 ] || [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
-    usage
-    exit 1
-fi
-
 cd $(dirname "${0}")
 
-function test {
-    filepath="$1"
+for chapter in $(ls -d */); do
+    chaptername=${chapter%%/}
 
-    printf "${blue}→${nocolor} Test $filepath\n"
-
-    if [ $filepath = "04/fill/Fill.tst" ] || [ $filepath = "05/Memory.tst" ]; then
-        printf "Skip - Requires GUI\n"
-        return 0
+    if [ $chaptername = "node_modules" ]; then
+        continue
     fi
 
-    filebase="${filepath%.*}"
-    fileext="${filepath##*.}"
+    printf "${blue}Chapter ${chaptername}${nocolor}\n"
 
-    if [ "$fileext" != "tst" ]; then
-        printf "Invalid file extension: $fileext\n"
-        usage
-        return 1
+    ./$chaptername/test
+
+    if [ $? -ne 0 ]; then
+        printf "\n${red}Some tests failed.${nocolor}\n"
+        exit 1
     fi
 
-    if [ -f "$filebase".asm ]; then
-        Assembler.sh "$filebase".asm
-        CPUEmulator.sh "$filepath"
-    else
-        HardwareSimulator.sh "$filepath"
-    fi
-}
-
-if [ "$#" -eq 1 ]; then
-    # Test the script passed as argument.
-    test $1
-    exit
-fi
-
-# Test all scripts.
-for i in $(ls -d */); do
-    chapter=${i%%/}
-    printf "${blue}Chapter ${chapter}${nocolor}\n"
-
-    for testfilepath in $(find "$chapter" -name "*.tst"); do
-        test "$testfilepath"
-        if [ $? -ne 0 ]; then
-            printf "\n${red}Tests failed.${nocolor}\n"
-            exit 1
-        fi
-    done
     printf "\n"
 done
-printf "${green}Tests passed.${nocolor}\n"
+
+printf "${green}All tests passed.${nocolor}\n"
