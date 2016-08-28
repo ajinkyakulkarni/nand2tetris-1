@@ -1,5 +1,10 @@
 #!/bin/bash
 
+red='\033[1;31m'
+green='\033[1;32m'
+blue='\033[1;34m'
+nocolor='\033[0m'
+
 function usage {
     printf "Usage: $0 [script.tst]\n"
     printf "Tests the script passed as argument, or all scripts if there is no argument.\n"
@@ -14,10 +19,16 @@ cd $(dirname "${0}")
 
 function test {
     filepath="$1"
+
+    printf "${blue}→${nocolor} Test $filepath\n"
+
+    if [ $filepath = "04/fill/Fill.tst" ] || [ $filepath = "05/Memory.tst" ]; then
+        printf "Skip - Requires GUI\n"
+        return 0
+    fi
+
     filebase="${filepath%.*}"
     fileext="${filepath##*.}"
-
-    printf "Test $filepath\n"
 
     if [ "$fileext" != "tst" ]; then
         printf "Invalid file extension: $fileext\n"
@@ -40,23 +51,12 @@ if [ "$#" -eq 1 ]; then
 fi
 
 # Test all scripts.
-red='\033[1;31m'
-green='\033[1;32m'
-blue='\033[1;34m'
-nocolor='\033[0m'
-
 for i in $(ls -d */); do
     chapter=${i%%/}
     printf "${blue}Chapter ${chapter}${nocolor}\n"
 
     for testfilepath in $(find "$chapter" -name "*.tst"); do
-        if [ $testfilepath = "04/fill/Fill.tst" ] || [ $testfilepath = "05/Memory.tst" ]; then
-            printf "Skip $testfilepath - Requires GUI\n"
-            continue
-        fi
-
         test "$testfilepath"
-
         if [ $? -ne 0 ]; then
             printf "\n${red}Tests failed.${nocolor}\n"
             exit 1
@@ -64,5 +64,4 @@ for i in $(ls -d */); do
     done
     printf "\n"
 done
-
 printf "${green}Tests passed.${nocolor}\n"
