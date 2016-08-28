@@ -2,6 +2,7 @@
 
 function usage {
     printf "Usage: $0 <script.tst>\n"
+    printf "Tests the script passed as argument, watching for source file changes.\n"
 }
 
 if [ "$#" -ne 1 ] || [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
@@ -17,32 +18,12 @@ command -v fswatch >/dev/null 2>&1 || {
 cd $(dirname "${0}")
 
 testfilepath="$1"
-testfilebase="${testfilepath%.*}"
-testfileext="${testfilepath##*.}"
 
-if [ "$testfileext" != "tst" ]; then
-    printf "Invalid file extension: $testfileext\n"
-    usage
-    exit 1
-fi
+function test {
+    ./test "$testfilepath"
+}
 
-if [ -f "$testfilebase".asm ]; then
-    watchpattern="\\.asm$"
-    function test {
-        Assembler.sh "$testfilebase".asm
-        CPUEmulator.sh "$testfilepath"
-    }
-elif [ -f "$testfilebase".hdl ]; then
-    watchpattern="\\.hdl$"
-    function test {
-        HardwareSimulator.sh "$testfilepath"
-    }
-else
-    printf "Cannot find source file to watch\n"
-    exit 1
-fi
-
-printf "Test $testfilepath and watch $watchpattern\n\n"
+printf "Watching for source file changes...\n\n"
 
 test
-fswatch -e ".*" -i "$watchpattern" . | (while read; do printf "\n"; test; done)
+fswatch -e ".*" -i "\.asm$" -i "\.hdl$" . | (while read; do printf "\n"; test; done)

@@ -1,29 +1,63 @@
 #!/bin/bash
 
+function usage {
+    printf "Usage: $0 [script.tst]\n"
+    printf "Tests the script passed as argument, or all scripts if there is no argument.\n"
+}
+
+if [ "$#" -gt 1 ] || [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+    usage
+    exit 1
+fi
+
+cd $(dirname "${0}")
+
+function test {
+    testfilepath="$1"
+    testfilebase="${testfilepath%.*}"
+    testfileext="${testfilepath##*.}"
+
+    printf "Test $testfilepath\n"
+
+    if [ "$testfileext" != "tst" ]; then
+        printf "Invalid file extension: $testfileext\n"
+        usage
+        return 1
+    fi
+
+    if [ -f "$testfilebase".asm ]; then
+        Assembler.sh "$testfilebase".asm
+        CPUEmulator.sh "$testfilepath"
+    else
+        HardwareSimulator.sh "$testfilepath"
+    fi
+}
+
+if [ "$#" -eq 1 ]; then
+    # Test the script passed as argument.
+    test $1
+    exit
+fi
+
+# Test all scripts.
 red='\033[1;31m'
 green='\033[1;32m'
 blue='\033[1;34m'
 nocolor='\033[0m'
 
-err=0
-trap "err=1" ERR
-
-cd $(dirname "${0}")
-
 for i in $(ls -d */); do
     chapter=${i%%/}
     printf "${blue}Chapter ${chapter}${nocolor}\n"
     for testfile in $(find "$chapter" -name "*.tst"); do
-        printf "${testfile} - "
-        HardwareSimulator.sh "$testfile"
+        if [ $testfile != "04/fill/Fill.tst" ]; then
+            test "$testfile"
+            if [ $? -ne 0 ]; then
+                printf "\n${red}Tests failed.${nocolor}\n"
+                exit 1
+            fi
+        fi
     done
     printf "\n"
 done
 
-if [ $err -eq 0 ]; then
-    printf "${green}All tests OK.${nocolor}\n"
-else
-    printf "${red}Some tests failed.${nocolor}\n"
-fi
-
-exit $s
+printf "${green}Tests passed.${nocolor}\n"
