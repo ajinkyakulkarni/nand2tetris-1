@@ -1,7 +1,12 @@
 #!/bin/bash
 
+red='\033[1;31m'
+green='\033[1;32m'
 blue='\033[1;34m'
 nocolor='\033[0m'
+
+err=0
+trap "err=1" ERR
 
 cd $(dirname "${0}")
 
@@ -12,4 +17,13 @@ for i in $(ls -d */); do
         printf "${testfile} - "
         HardwareSimulator.sh "$testfile"
     done
+    printf "\n"
 done
+
+if [ $err -eq 0 ]; then
+    printf "${green}All tests OK.${nocolor}\n"
+else
+    printf "${red}Some tests failed.${nocolor}\n"
+fi
+
+exit $s
