@@ -1,5 +1,5 @@
 /**
- * 16-bit manipulator: 
+ * 16-bit manipulator:
  * out = in       if zero == 0 and not == 0
  *       zero     if zero == 1 and not == 0
  *       not in   if zero == 0 and not == 1

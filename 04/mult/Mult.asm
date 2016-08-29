@@ -36,7 +36,7 @@ M=D
     // Decrement i and loop.
     @i
     M=M-1
-    
+
     @LOOP
     0;JMP
 

@@ -4,7 +4,7 @@ export default function parse(line) {
     if (comment >= 0) {
         line = line.substring(0, comment);
     }
-    
+
     line = line.trim();
 
     if (!line) {
