@@ -42,6 +42,9 @@ export default function parse(line) {
             return {type: 'arithmetic', operation: 'not'};
 
         case 'push':
-            return {type: 'push', args: elements.slice(1)};
+            return {type: 'push', segment: elements[1], index: parseInt(elements[2], 10)};
+
+        case 'pop':
+            return {type: 'pop', segment: elements[1], index: parseInt(elements[2], 10)};
     }
 }

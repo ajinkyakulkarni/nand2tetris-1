@@ -22,11 +22,11 @@ const tests = [
     },
     {
         line: 'push constant 7',
-        command: {type: 'push', args: ['constant', '7']}
+        command: {type: 'push', segment: 'constant', index: 7}
     },
     {
         line: '  push  constant    7  // This is a comment ',
-        command: {type: 'push', args: ['constant', '7']}
+        command: {type: 'push', segment: 'constant', index: 7}
     },
     {
         line: 'add',
