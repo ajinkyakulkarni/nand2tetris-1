@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+blue='\033[1;34m'
+nocolor='\033[0m'
+
+cd $(dirname "${0}")
+
+for testfile in $(ls *_test.js); do
+    printf "${blue}→${nocolor} Test $testfile\n"
+    ../node_modules/.bin/babel-node --presets es2015 "$testfile"
+done
+
+for jackfile in $(find * -name '*.jack'); do
+
+    if [ "$jackfile" != "Seven/Main.jack" ]; then
+        continue
+    fi
+
+    printf "${blue}→${nocolor} Test $jackfile\n"
+
+    jackfilebase="${jackfile%.*}"
+    builtinvmfile="$jackfilebase".vm
+    diyvmfile="$jackfilebase".diy.vm
+
+    ../node_modules/.bin/babel-node --presets es2015 compiler-cli.js "$jackfile" "$diyvmfile"
+
+    diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \
+        --new-line-format="    diy line %dn: %L" "$builtinvmfile" "$diyvmfile"
+
+    printf "Files match.\n"
+done
