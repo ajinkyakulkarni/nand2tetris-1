@@ -14,7 +14,7 @@ cd $(dirname "${0}")
 
 for testfile in $(find * -name '*.tst' ! -name '*VME.tst'); do
 
-    if [ $testfile != "ProgramFlow/FibonacciSeries/FibonacciSeries.tst" ]; then
+    if [ $testfile != "FunctionCalls/SimpleFunction/SimpleFunction.tst" ]; then
         continue
     fi
 

@@ -52,6 +52,44 @@ const tests = [
             '@SP', 'M=M-1', 'A=M', 'D=M', // Pop into D
             '@LOOP_START', 'D;JNE'        // Jump if D != 0
         ]
+    },
+    {
+        command: {type: 'function', name: 'SimpleFunction.test', numArguments: 2},
+        lines: [
+            '(SimpleFunction.test)',
+            '@SP', 'M=M+1', 'A=M-1', 'M=0', // Push 0
+            '@SP', 'M=M+1', 'A=M-1', 'M=0'  // Push 0 again (2 arguments)
+        ]
+    },
+    {
+        command: {type: 'return'},
+        lines: [
+            // Copy the return address into D, then into R14
+            '@LCL', 'D=M', '@5', 'A=D-A', 'D=M',
+            '@R14', 'M=D',
+
+            // Pop the return value into D, then copy into ARG 0 (which is where the calling
+            // function will expect the return value to be)
+            '@SP', 'M=M-1', 'A=M', 'D=M', '@ARG', 'A=M', 'M=D',
+
+            // Restore caller SP; original address was ARG + 1
+            '@ARG', 'D=M+1', '@SP', 'M=D',
+
+            // Restore caller THAT; original address was saved at LCL - 1
+            '@LCL', 'D=M', '@1', 'A=D-A', 'D=M', '@THAT', 'M=D',
+
+            // Restore caller THIS; original address was saved at LCL - 2
+            '@LCL', 'D=M', '@2', 'A=D-A', 'D=M', '@THIS', 'M=D',
+
+            // Restore caller ARG; original address was saved at LCL - 3
+            '@LCL', 'D=M', '@3', 'A=D-A', 'D=M', '@ARG', 'M=D',
+
+            // Restore caller LCL; original address was saved at LCL - 3
+            '@LCL', 'D=M', '@4', 'A=D-A', 'D=M', '@LCL', 'M=D',
+
+            // Goto return address
+            '@R14', 'A=M', '0;JMP'
+        ]
     }
 ];
 

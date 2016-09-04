@@ -6,7 +6,38 @@ const symbols = {
 };
 
 const popD = ['@SP', 'M=M-1', 'A=M', 'D=M'];
+
 const pushD = ['@SP', 'M=M+1', 'A=M-1', 'M=D'];
+
+const push0 = ['@SP', 'M=M+1', 'A=M-1', 'M=0'];
+
+const ret = [
+    // Copy the return address into D, then into R14
+    '@LCL', 'D=M', '@5', 'A=D-A', 'D=M',
+    '@R14', 'M=D',
+
+    // Pop the return value into D, then copy into ARG 0 (which is where the calling
+    // function will expect the return value to be)
+    '@SP', 'M=M-1', 'A=M', 'D=M', '@ARG', 'A=M', 'M=D',
+
+    // Restore caller SP; original address was ARG + 1
+    '@ARG', 'D=M+1', '@SP', 'M=D',
+
+    // Restore caller THAT; original address was saved at LCL - 1
+    '@LCL', 'D=M', '@1', 'A=D-A', 'D=M', '@THAT', 'M=D',
+
+    // Restore caller THIS; original address was saved at LCL - 2
+    '@LCL', 'D=M', '@2', 'A=D-A', 'D=M', '@THIS', 'M=D',
+
+    // Restore caller ARG; original address was saved at LCL - 3
+    '@LCL', 'D=M', '@3', 'A=D-A', 'D=M', '@ARG', 'M=D',
+
+    // Restore caller LCL; original address was saved at LCL - 3
+    '@LCL', 'D=M', '@4', 'A=D-A', 'D=M', '@LCL', 'M=D',
+
+    // Goto return address
+    '@R14', 'A=M', '0;JMP'
+];
 
 let nextLabelIndex = 0;
 
@@ -119,6 +150,14 @@ function translatePop(staticPrefix, segment, index) {
     }
 }
 
+function translateFunction(name, numArguments) {
+    const lines = ['(' + name + ')'];
+    for (let i = 0; i < numArguments; i++) {
+        lines.push(...push0);
+    }
+    return lines;
+}
+
 export default function translate(staticPrefix, command) {
     switch (command.type) {
         case 'arithmetic':
@@ -138,5 +177,11 @@ export default function translate(staticPrefix, command) {
 
         case 'if-goto':
             return [...popD, '@' + command.label, 'D;JNE'];
+
+        case 'function':
+            return translateFunction(command.name, command.numArguments);
+
+        case 'return':
+            return ret;
     }
 }

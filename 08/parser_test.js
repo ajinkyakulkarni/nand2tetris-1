@@ -43,6 +43,14 @@ const tests = [
     {
         line: 'if-goto LOOP_START',
         command: {type: 'if-goto', label: 'LOOP_START'}
+    },
+    {
+        line: 'function SimpleFunction.test 2',
+        command: {type: 'function', name: 'SimpleFunction.test', numArguments: 2}
+    },
+    {
+        line: 'return',
+        command: {type: 'return'}
     }
 ];
 
