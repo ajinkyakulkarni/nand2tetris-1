@@ -1,13 +1,13 @@
 import {translateDest, translateComp, translateJump} from './translator';
 import parse from './parser';
-import SymbolMap from './symbol-map';
+import SymbolTable from './symbol-table';
 
 export default function assemble(assembly) {
     const lines = assembly.split(/(\r|\n)/);
     const commands = lines.map(parse).filter(command => command !== null);
-    const symbolMap = new SymbolMap();
+    const symbolTable = new SymbolTable();
 
-    // First pass: add labels to the symbol map.
+    // First pass: add labels to the symbol table.
     let currentLineAddress = 0;
     for (const command of commands) {
         switch (command.type) {
@@ -17,12 +17,12 @@ export default function assemble(assembly) {
                 break;
 
             case 'L':
-                symbolMap.set(command.symbol, currentLineAddress);
+                symbolTable.set(command.symbol, currentLineAddress);
                 break;
         }
     }
 
-    // Second pass: add variables to the symbol map and translate commands.
+    // Second pass: add variables to the symbol table and translate commands.
     let nextVariableAddress = parseInt(10000, 2);
     const translatedCommands = [];
     for (const command of commands) {
@@ -31,11 +31,11 @@ export default function assemble(assembly) {
                 let number;
                 const constant = parseInt(command.symbol, 10);
                 if (isNaN(constant)) {
-                    if (!symbolMap.has(command.symbol)) {
-                        symbolMap.set(command.symbol, nextVariableAddress);
+                    if (!symbolTable.has(command.symbol)) {
+                        symbolTable.set(command.symbol, nextVariableAddress);
                         nextVariableAddress++;
                     }
-                    number = symbolMap.get(command.symbol);
+                    number = symbolTable.get(command.symbol);
                 } else {
                     number = constant;
                 }

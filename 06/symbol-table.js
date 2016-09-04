@@ -24,7 +24,7 @@ const predefined = {
     'KBD'   : 24576
 };
 
-export default class SymbolMap {
+export default class SymbolTable {
     constructor() {
         this.map = new Map();
     }
