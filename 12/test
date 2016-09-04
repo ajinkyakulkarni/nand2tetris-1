@@ -14,10 +14,6 @@ osdir="$toolsdir"/os
 for jackfile in $(ls *.jack); do
     jackfilebase="${jackfile%.*}"
 
-    if [ "$jackfilebase" != "Screen" ]; then
-        continue
-    fi
-
     printf "${blue}→${nocolor} Test $jackfilebase\n"
 
     testdir="$jackfilebase"Test
@@ -32,6 +28,6 @@ for jackfile in $(ls *.jack); do
         VMEmulator.sh "$testfile"
     else
         printf "This class requires manual testing. "
-        printf "Open $testdir in VMEmulator and follow the steps described in the book.\n"
+        printf "Open and run $testdir in VMEmulator and compare with the expected output.\n"
     fi
 done
