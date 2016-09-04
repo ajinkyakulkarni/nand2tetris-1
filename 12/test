@@ -14,7 +14,7 @@ osdir="$toolsdir"/os
 for jackfile in $(ls *.jack); do
     jackfilebase="${jackfile%.*}"
 
-    if [ "$jackfilebase" != "Keyboard" ]; then
+    if [ "$jackfilebase" != "Screen" ]; then
         continue
     fi
 
