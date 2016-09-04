@@ -14,17 +14,28 @@ cd $(dirname "${0}")
 
 for jackfile in $(find * -name '*.jack'); do
 
-    if [ "$jackfile" != "Square/SquareGame.jack" ]; then
+    if [ "$jackfile" != "Average/Main.jack" ]; then
         continue
     fi
 
     printf "${blue}→${nocolor} Test $jackfile\n"
 
-    jackfilebase="${jackfile%.*}"
-    builtinvmfile="$jackfilebase".vm
-    diyvmfile="$jackfilebase".diy.vm
+    jackfilebase="${jackfile##*/}"
+    jackfilename="${jackfilebase%.*}"
+    jackfiledir="${jackfile%/*}"
+
+    builtindir="$jackfiledir"/builtin
+    mkdir -p "$builtindir"
+    tmpbuiltinvmfile="$jackfiledir"/"$jackfilename".vm
+    builtinvmfile="$builtindir"/"$jackfilename".vm
+
+    diydir="$jackfiledir"/diy
+    mkdir -p "$diydir"
+    diyvmfile="$diydir"/"$jackfilename".vm
 
     JackCompiler.sh "$jackfile"
+    mv "$tmpbuiltinvmfile" "$builtinvmfile"
+
     ../node_modules/.bin/babel-node --presets es2015 compiler-cli.js "$jackfile" "$diyvmfile"
 
     diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \

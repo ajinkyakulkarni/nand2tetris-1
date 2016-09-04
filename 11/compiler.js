@@ -2,6 +2,13 @@ import tokenize from './tokenizer';
 import parse from './parser';
 import SymbolTable from './symbol-table';
 
+const segments = {
+    static: 'static',
+    field: 'this',
+    argument: 'argument',
+    var: 'local'
+};
+
 export default function compile(jack) {
     const tokens = tokenize(jack);
     const node = parse(tokens);
@@ -32,7 +39,10 @@ export function compileClass({children}) {
 }
 
 export function compileSubroutineDec({children}, symbolTable) {
+    const subroutineType = children[0].value;
     const subroutineName = children[2].value;
+
+    symbolTable.startSubroutine(subroutineType);
 
     processParameterList(children[4], symbolTable);
 
@@ -41,7 +51,7 @@ export function compileSubroutineDec({children}, symbolTable) {
     const numFields = symbolTable.count('field');
     const numVars = symbolTable.count('var');
 
-    switch (children[0].value) {
+    switch (subroutineType) {
         case 'constructor':
             return [
                 `function ${symbolTable.className}.${subroutineName} ${numVars}`,
@@ -116,10 +126,9 @@ export function compileStatements({children}, symbolTable) {
 }
 
 export function compileLetStatement({children}, symbolTable) {
-    console.log(children);
     return [
         ...compileExpression(children[children.length - 2], symbolTable),
-        ...popTo(children[1], symbolTable)
+        ...pop(children, 1, symbolTable)
     ];
 }
 
@@ -201,7 +210,7 @@ export function compileSubroutineCall({children}, symbolTable) {
         const className = symbolTable.get(children[0].value).type;
 
         return [
-            ...pushFrom(children[0], symbolTable),
+            ...push(children, 0, symbolTable),
             ...compileExpressionList(expressionList, symbolTable),
             `call ${className}.${subroutineName} ${numArguments + 1}`
         ];
@@ -242,14 +251,13 @@ export function compileTerm({children}, symbolTable) {
             return [`push constant ${children[0].value}`];
 
         case 'stringConstant':
-            // TODO
-            return;
+            return compileStringConstant(children[0]);
 
         case 'keyword':
             return compileKeywordConstant(children[0]);
 
         case 'identifier':
-            return pushFrom(children[0], symbolTable);
+            return push(children, 0, symbolTable);
 
         case 'subroutineCall':
             return compileSubroutineCall(children[0], symbolTable);
@@ -260,6 +268,22 @@ export function compileTerm({children}, symbolTable) {
             }
             return [...compileTerm(children[1], symbolTable), ...compileUnaryOp(children[0])];
     }
+}
+
+export function compileStringConstant({value}) {
+    const compiledLines = [
+        'push constant ' + value.length,
+        'call String.new 1'
+    ];
+
+    for (let i = 0; i < value.length; i++) {
+        compiledLines.push(
+            'push constant ' + value.charCodeAt(i),
+            'call String.appendChar 2'
+        );
+    }
+
+    return compiledLines;
 }
 
 export function compileKeywordConstant({value}) {
@@ -297,41 +321,37 @@ export function compileUnaryOp({value}) {
     }
 }
 
-
-function popTo({value: varName}, symbolTable) {
-    const {kind, index} = symbolTable.get(varName);
-
-    switch (kind) {
-        case 'static':
-            return [`pop static ${index}`];
-
-        case 'field':
-            return [`pop this ${index}`];
-
-        case 'argument':
-            return [`pop argument ${index}`];
-
-        case 'var':
-            return [`pop local ${index}`];
-    }
+function pop(nodes, start, symbolTable) {
+    return move('pop', nodes, start, symbolTable);
 }
 
-function pushFrom({value: varName}, symbolTable) {
-    const {kind, index} = symbolTable.get(varName);
+function push(nodes, start, symbolTable) {
+    return move('push', nodes, start, symbolTable);
+}
 
-    switch (kind) {
-        case 'static':
-            return [`push static ${index}`];
+function move(action, nodes, start, symbolTable) {
+    const varName = nodes[start].value;
 
-        case 'field':
-            return [`push this ${index}`];
-
-        case 'argument':
-            return [`push argument ${index}`];
-
-        case 'var':
-            return [`push local ${index}`];
+    if (nodes[start + 1] && nodes[start + 1].type === 'symbol' && nodes[start+ 1].value === '[') {
+        const offsetExpression = nodes[start + 2];
+        return moveCell(action, varName, offsetExpression, symbolTable);
     }
+
+    const {kind, index} = symbolTable.get(varName);
+    return [`${action} ${segments[kind]} ${index}`];
+}
+
+function moveCell(action, arrayName, offsetExpression, symbolTable) {
+    const {kind, index} = symbolTable.get(arrayName);
+
+    // Make `that` point to the cell, then push to or pop from `that`.
+    return [
+        `push ${segments[kind]} ${index}`,
+        ...compileExpression(offsetExpression, symbolTable),
+        'add',
+        'pop pointer 1',
+        `${action} that 0`
+    ];
 }
 
 function processVarDec({children}, symbolTable) {
@@ -344,8 +364,6 @@ function processVarDec({children}, symbolTable) {
 }
 
 function processParameterList({children}, symbolTable) {
-    symbolTable.startSubroutine();
-
     for (let i = 0; i < children.length; i += 3) {
         const type = children[i].value;
         const varName = children[i + 1].value;

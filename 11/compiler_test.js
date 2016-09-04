@@ -399,6 +399,130 @@ const tests = [
             'push pointer 0',      // Push the instance address on the stack, as return value
             'return'
         ]
+    },
+    {
+        fn: compiler.compileClass,
+        node: {type: 'class', children: [
+            {type: 'keyword', value: 'class'},
+            {type: 'identifier', value: 'TestClass'},
+            {type: 'symbol', value: '{'},
+            {type: 'classVarDec', children: [
+                {type: 'keyword', value: 'field'},
+                {type: 'keyword', value: 'int'},
+                {type: 'identifier', value: 'fieldValue'},
+                {type: 'symbol', value: ';'}
+            ]},
+            {type: 'subroutineDec', children: [
+                {type: 'keyword', value: 'method'},
+                {type: 'identifier', value: 'void'},
+                {type: 'identifier', value: 'setFieldValue'},
+                {type: 'symbol', value: '('},
+                {type: 'parameterList', children: [
+                    {type: 'keyword', value: 'int'},
+                    {type: 'identifier', value: 'argValue'}
+                ]},
+                {type: 'symbol', value: ')'},
+                {type: 'subroutineBody', children: [
+                    {type: 'symbol', value: '{'},
+                    {type: 'statements', children: [
+                        {type: 'letStatement', children: [
+                            {type: 'keyword', value: 'let'},
+                            {type: 'identifier', value: 'fieldValue'},
+                            {type: 'symbol', value: '='},
+                            {type: 'expression', children: [
+                                {type: 'term', children: [
+                                    {type: 'identifier', value: 'argValue'}
+                                ]}
+                            ]},
+                            {type: 'symbol', value: ';'}
+                        ]},
+                        {type: 'returnStatement', children: [
+                            {type: 'keyword', value: 'return'},
+                            {type: 'symbol', value: ';'}
+                        ]}
+                    ]},
+                    {type: 'symbol', value: '}'}
+                ]}
+            ]},
+            {type: 'symbol', value: '}'}
+        ]},
+        lines: [
+            'function TestClass.setFieldValue 0',
+            'push argument 0',
+            'pop pointer 0',
+            'push argument 1',
+            'pop this 0',
+            'push constant 0',
+            'return'
+        ]
+    },
+    {
+        fn: node => {
+            const symbolTable = new SymbolTable();
+            symbolTable.className = 'TestClass';
+            return compiler.compileSubroutineDec(node, symbolTable);
+        },
+        node: {type: 'subroutineDec', children: [
+            {type: 'keyword', value: 'function'},
+            {type: 'keyword', value: 'void'},
+            {type: 'identifier', value: 'testFn'},
+            {type: 'symbol', value: '('},
+            {type: 'parameterList', children: [
+                {type: 'keyword', value: 'Array'},
+                {type: 'identifier', value: 'testArg'}
+            ]},
+            {type: 'symbol', value: ')'},
+            {type: 'subroutineBody', children: [
+                {type: 'symbol', value: '{'},
+                {type: 'statements', children: [
+                    {type: 'letStatement', children: [
+                        {type: 'keyword', value: 'let'},
+                        {type: 'identifier', value: 'testArg'},
+                        {type: 'symbol', value: '['},
+                        {type: 'expression', children: [
+                            {type: 'term', children: [
+                                {type: 'integerConstant', value: 10}
+                            ]}
+                        ]},
+                        {type: 'symbol', value: ']'},
+                        {type: 'symbol', value: '='},
+                        {type: 'expression', children: [
+                            {type: 'term', children: [
+                                {type: 'identifier', value: 'testArg'},
+                                {type: 'symbol', value: '['},
+                                {type: 'expression', children: [
+                                    {type: 'term', children: [
+                                        {type: 'integerConstant', value: 20}
+                                    ]}
+                                ]},
+                                {type: 'symbol', value: ']'}
+                            ]}
+                        ]},
+                        {type: 'symbol', value: ';'}
+                    ]},
+                    {type: 'returnStatement', children: [
+                        {type: 'keyword', value: 'return'},
+                        {type: 'symbol', value: ';'}
+                    ]}
+                ]},
+                {type: 'symbol', value: '}'}
+            ]}
+        ]},
+        lines: [
+            'function TestClass.testFn 0',
+            'push argument 0',
+            'push constant 20',
+            'add',
+            'pop pointer 1',
+            'push that 0',
+            'push argument 0',
+            'push constant 10',
+            'add',
+            'pop pointer 1',
+            'pop that 0',
+            'push constant 0',
+            'return'
+        ]
     }
 ];
 
