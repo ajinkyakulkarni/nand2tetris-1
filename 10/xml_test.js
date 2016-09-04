@@ -1,9 +1,9 @@
-import tokensToXml from './xml';
+import {tokensToXml, treeToXml} from './xml';
 
 const assert = require('assert');
-const inspect = require('util').inspect;
+const inspect = obj => require('util').inspect(obj, {depth: null});
 
-const tests = [
+const tokensToXmlTests = [
     {
         tokens: [
             {type: 'keyword', value: 'if'},
@@ -54,9 +54,40 @@ const tests = [
     }
 ];
 
-for (const test of tests) {
+const treeToXmlTests = [
+    {
+        tree: {type: 'expression', children: [
+            {type: 'term', children: [
+                {type: 'identifier', value: 'x'}
+            ]},
+            {type: 'symbol', value: '<'},
+            {type: 'term', children: [
+                {type: 'integerConstant', value: 153}
+            ]}
+        ]},
+        xml:
+`<expression>
+  <term>
+    <identifier> x </identifier>
+  </term>
+  <symbol> &lt; </symbol>
+  <term>
+    <integerConstant> 153 </integerConstant>
+  </term>
+</expression>
+`
+    }
+];
+
+for (const test of tokensToXmlTests) {
     const xml = tokensToXml(test.tokens);
     assert.strictEqual(xml, test.xml, `For test tokens ${inspect(test.tokens)}, ` +
+        `expected xml to be '${test.xml}', but was '${xml}'`);
+}
+
+for (const test of treeToXmlTests) {
+    const xml = treeToXml(test.tree);
+    assert.strictEqual(xml, test.xml, `For test tree ${inspect(test.tree)}, ` +
         `expected xml to be '${test.xml}', but was '${xml}'`);
 }
 

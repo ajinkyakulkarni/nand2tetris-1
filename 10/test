@@ -32,8 +32,11 @@ for jackfile in $(find * -name '*.jack'); do
 
     printf "Files match.\n"
 
-    # printf "Compare $builtinparsedfile and $jackfilebase\n"
-    # diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \
-    #     --new-line-format="    diy line %dn: %L" "$builtinparsedfile" "$jackfilebase"
-    # printf "Files match.\n"
+    printf "Compare $builtinparsedfile and $diyparsedfile\n"
+
+    diff --ignore-all-space --unchanged-line-format="" \
+        --old-line-format="builtin line %dn: %L" --new-line-format="    diy line %dn: %L" \
+        "$builtinparsedfile" "$diyparsedfile"
+
+    printf "Files match.\n"
 done

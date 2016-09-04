@@ -1,25 +1,12 @@
-import tokensToXml from './xml';
 import tokenize from './tokenizer';
+import parse from './parser';
+import {tokensToXml, treeToXml} from './xml';
 
 const fs = require('fs');
 
-// const jackPaths = process.argv.slice(2, process.argv.length - 1);
-
-// for (const jackPath of jackPaths) {
-//     const jack = fs.readFileSync(jackPath, {encoding: 'utf8'});
-
-//     // Tokenize.
-//     const tokensXmlPath = jackPath.replace(/\.jack$/, 'T.xml');
-//     console.log(`Tokenize ${jackPath} into ${tokensXmlPath}`);
-//     fs.writeFileSync(tokensXmlPath, tokensToXml(tokenize(jack)), {encoding: 'utf8'});
-
-//     // Parse.
-//     // TODO
-// }
-
 const jackPath = process.argv[2];
 const tokenizedPath = process.argv[3];
-// const parsedPath = process.argv[4];
+const parsedPath = process.argv[4];
 
 const jack = fs.readFileSync(jackPath, {encoding: 'utf8'});
 
@@ -27,7 +14,10 @@ const jack = fs.readFileSync(jackPath, {encoding: 'utf8'});
 console.log(`Tokenize ${jackPath} into ${tokenizedPath}`);
 const tokens = tokenize(jack);
 const tokenizedXml = tokensToXml(tokens);
-fs.writeFileSync(tokenizedPath, tokensToXml(tokenize(jack)), {encoding: 'utf8'});
+fs.writeFileSync(tokenizedPath, tokenizedXml, {encoding: 'utf8'});
 
 // Parse.
-// TODO
+console.log(`Parse into ${parsedPath}`);
+const tree = parse(tokens);
+const parsedXml = treeToXml(tree);
+fs.writeFileSync(parsedPath, parsedXml, {encoding: 'utf8'});
