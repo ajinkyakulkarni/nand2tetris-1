@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e
+
+blue='\033[1;34m'
+nocolor='\033[0m'
+
+cd $(dirname "${0}")
+
+vmemulator=$(which VMEmulator.sh)
+toolsdir=${vmemulator%/*}
+osdir="$toolsdir"/os
+
+for jackfile in $(ls *.jack); do
+    jackfilebase="${jackfile%.*}"
+
+    if [ "$jackfilebase" != "String" ]; then
+        continue
+    fi
+
+    printf "${blue}→${nocolor} Test $jackfilebase\n"
+
+    testdir="$jackfilebase"Test
+    testfile="$testdir"/"$jackfilebase"Test.tst
+
+    cp "$osdir"/*.vm "$testdir"
+    cp "$jackfile" "$testdir"
+
+    JackCompiler.sh "$testdir"
+
+    if [ -f "$testfile" ]; then
+        VMEmulator.sh "$testfile"
+    else
+        printf "This class requires manual testing. "
+        printf "Open $testdir in VMEmulator and follow the steps described in the book.\n"
+    fi
+done
