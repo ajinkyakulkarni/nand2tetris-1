@@ -24,19 +24,6 @@ for jackfile in $(find * -name '*.jack'); do
     ../node_modules/.bin/babel-node --presets es2015 analyzer-cli.js "$jackfile" \
         "$diytokenizedfile" "$diyparsedfile"
 
-    printf "Compare $builtintokenizedfile and $diytokenizedfile\n"
-
-    diff --ignore-all-space --unchanged-line-format="" \
-        --old-line-format="builtin line %dn: %L" --new-line-format="    diy line %dn: %L" \
-        "$builtintokenizedfile" "$diytokenizedfile"
-
-    printf "Files match.\n"
-
-    printf "Compare $builtinparsedfile and $diyparsedfile\n"
-
-    diff --ignore-all-space --unchanged-line-format="" \
-        --old-line-format="builtin line %dn: %L" --new-line-format="    diy line %dn: %L" \
-        "$builtinparsedfile" "$diyparsedfile"
-
-    printf "Files match.\n"
+    TextComparer.sh "$builtintokenizedfile" "$diytokenizedfile"
+    TextComparer.sh "$builtinparsedfile" "$diyparsedfile"
 done

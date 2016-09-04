@@ -26,8 +26,5 @@ for testfile in $(find * -name '*.asm'); do
     ../node_modules/.bin/babel-node --presets es2015 assembler-cli.js "$testfile"
     mv "$hackfile" "$hackfilediy"
 
-    diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \
-        --new-line-format="    diy line %dn: %L" "$hackfilebuiltin" "$hackfilediy"
-
-    printf "Files match.\n"
+    TextComparer.sh "$hackfilebuiltin" "$hackfilediy"
 done
