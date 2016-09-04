@@ -7,8 +7,7 @@ export default class SymbolTable {
     startSubroutine(type) {
         this.subroutineScope = new Map();
         this.subroutineType = type;
-        this.nextWhileIndex = 0;
-        this.nextIfIndex = 0;
+        this.nextLabelIndex = 0;
     }
 
     has(name) {

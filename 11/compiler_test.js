@@ -262,7 +262,7 @@ const tests = [
             {type: 'symbol', value: '('},
             {type: 'expression', children: [
                 {type: 'term', children: [
-                    {type: 'keyword', value: 'true'}
+                    {type: 'integerConstant', value: '8'}
                 ]}
             ]},
             {type: 'symbol', value: ')'},
@@ -272,7 +272,7 @@ const tests = [
                     {type: 'keyword', value: 'return'},
                     {type: 'expression', children: [
                         {type: 'term', children: [
-                            {type: 'keyword', value: 'true'}
+                            {type: 'integerConstant', value: '1'}
                         ]}
                     ]},
                     {type: 'symbol', value: ';'}
@@ -281,15 +281,63 @@ const tests = [
             {type: 'symbol', value: '}'}
         ]},
         lines: [
-            'push constant 0',
+            'push constant 8',
             'not',
-            'if-goto IF_TRUE0',
-            'goto IF_FALSE0',
-            'label IF_TRUE0',
-            'push constant 0',
-            'not',
+            'if-goto IF_END_0',
+            'push constant 1',
             'return',
-            'label IF_FALSE0'
+            'label IF_END_0'
+        ]
+    },
+    {
+        fn: node => compiler.compileIfStatement(node, new SymbolTable()),
+        node: {type: 'ifStatement', children: [
+            {type: 'keyword', value: 'if'},
+            {type: 'symbol', value: '('},
+            {type: 'expression', children: [
+                {type: 'term', children: [
+                    {type: 'integerConstant', value: '8'}
+                ]}
+            ]},
+            {type: 'symbol', value: ')'},
+            {type: 'symbol', value: '{'},
+            {type: 'statements', children: [
+                {type: 'returnStatement', children: [
+                    {type: 'keyword', value: 'return'},
+                    {type: 'expression', children: [
+                        {type: 'term', children: [
+                            {type: 'integerConstant', value: '1'}
+                        ]}
+                    ]},
+                    {type: 'symbol', value: ';'}
+                ]}
+            ]},
+            {type: 'symbol', value: '}'},
+            {type: 'keyword', value: 'else'},
+            {type: 'symbol', value: '{'},
+            {type: 'statements', children: [
+                {type: 'returnStatement', children: [
+                    {type: 'keyword', value: 'return'},
+                    {type: 'expression', children: [
+                        {type: 'term', children: [
+                            {type: 'integerConstant', value: '2'}
+                        ]}
+                    ]},
+                    {type: 'symbol', value: ';'}
+                ]}
+            ]},
+            {type: 'symbol', value: '}'}
+        ]},
+        lines: [
+            'push constant 8',
+            'if-goto IF_TRUE_0',
+            'push constant 2',
+            'return',
+            'goto IF_END_0',
+            'label IF_TRUE_0',
+            'push constant 1',
+            'return',
+            'label IF_END_0'
         ]
     },
     {

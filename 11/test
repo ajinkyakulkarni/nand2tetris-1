@@ -7,39 +7,35 @@ nocolor='\033[0m'
 
 cd $(dirname "${0}")
 
-# for testfile in $(ls *_test.js); do
-#     printf "${blue}→${nocolor} Test $testfile\n"
-#     ../node_modules/.bin/babel-node --presets es2015 "$testfile"
-# done
+for testfile in $(ls *_test.js); do
+    printf "${blue}→${nocolor} Test $testfile\n"
+    ../node_modules/.bin/babel-node --presets es2015 "$testfile"
+done
 
-for jackfile in $(find * -name '*.jack'); do
+for testdir in $(ls -d */); do
+    testdir=${testdir%%/}
 
-    if [ "$jackfile" != "Average/Main.jack" ]; then
-        continue
-    fi
+    printf "${blue}→${nocolor} Test $testdir\n"
 
-    printf "${blue}→${nocolor} Test $jackfile\n"
-
-    jackfilebase="${jackfile##*/}"
-    jackfilename="${jackfilebase%.*}"
-    jackfiledir="${jackfile%/*}"
-
-    builtindir="$jackfiledir"/builtin
+    builtindir="$testdir"/builtin
     mkdir -p "$builtindir"
-    tmpbuiltinvmfile="$jackfiledir"/"$jackfilename".vm
-    builtinvmfile="$builtindir"/"$jackfilename".vm
+    cp "$testdir"/*.jack "$builtindir"/
+    JackCompiler.sh "$builtindir"
+    rm "$builtindir"/*.jack
 
-    diydir="$jackfiledir"/diy
+    diydir="$testdir"/diy
     mkdir -p "$diydir"
-    diyvmfile="$diydir"/"$jackfilename".vm
 
-    JackCompiler.sh "$jackfile"
-    mv "$tmpbuiltinvmfile" "$builtinvmfile"
+    for jackfile in $(find "$testdir" -name '*.jack'); do
+        jackfilebase="${jackfile##*/}"
+        jackfilename="${jackfilebase%.*}"
 
-    ../node_modules/.bin/babel-node --presets es2015 compiler-cli.js "$jackfile" "$diyvmfile"
+        diyvmfile="$diydir"/"$jackfilename".vm
 
-    diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \
-        --new-line-format="    diy line %dn: %L" "$builtinvmfile" "$diyvmfile"
+        ../node_modules/.bin/babel-node --presets es2015 compiler-cli.js "$jackfile" "$diyvmfile"
+    done
 
-    printf "Files match.\n"
+    printf "Manual testing steps:\n"
+    printf "1. Read the book and/or open $builtindir in VMEmulator and observe the program behavior.\n"
+    printf "2. Open $diydir in VMEmulator and verify that it behaves as expected.\n"
 done

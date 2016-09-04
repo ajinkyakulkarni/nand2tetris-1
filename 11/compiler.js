@@ -133,47 +133,50 @@ export function compileLetStatement({children}, symbolTable) {
 }
 
 export function compileWhileStatement({children}, symbolTable) {
-    const index = symbolTable.nextWhileIndex++;
+    const labelIndex = symbolTable.nextLabelIndex++;
+    const startLabel = 'WHILE_START_' + labelIndex;
+    const endLabel = 'WHILE_END_' + labelIndex;
 
     return [
-        'label WHILE_EXP' + index,
+        'label ' + startLabel,
         ...compileExpression(children[2], symbolTable),
         'not',
-        'if-goto WHILE_END' + index,
+        'if-goto ' + endLabel,
         ...compileStatements(children[5], symbolTable),
-        'goto WHILE_EXP' + index,
-        'label WHILE_END' + index
+        'goto ' + startLabel,
+        'label ' + endLabel
     ];
 }
 
 export function compileIfStatement({children}, symbolTable) {
-    const index = symbolTable.nextIfIndex++;
+    const labelIndex = symbolTable.nextLabelIndex++;
+    const endLabel = 'IF_END_' + labelIndex;
+
+    const conditionLines = compileExpression(children[2], symbolTable);
+    const ifLines = compileStatements(children[5], symbolTable);
 
     if (children.length < 8) {
-        // Simple if.
-        return [
-            ...compileExpression(children[2], symbolTable),
-            'if-goto IF_TRUE' + index,
-            'goto IF_FALSE' + index,
-            'label IF_TRUE' + index,
-            ...compileStatements(children[5], symbolTable),
-            'label IF_FALSE' + index
+        // Simple if statement.
+         return [
+            ...conditionLines,
+            'not',
+            'if-goto ' + endLabel,
+            ...ifLines,
+            'label ' + endLabel
         ];
     }
 
-    // If-else. It is possible to use only 2 labels instead of 3, but since the tests rely on a
-    // complete match between the outputs of the built-in compiler and this compiler, we use the
-    // same implementation as the built-in compiler.
+    // if-else statement.
+    const trueLabel = 'IF_TRUE_' + labelIndex;
+    const elseLines = compileStatements(children[9], symbolTable);
     return [
-        ...compileExpression(children[2], symbolTable),
-        'if-goto IF_TRUE' + index,
-        'goto IF_FALSE' + index,
-        'label IF_TRUE' + index,
-        ...compileStatements(children[5], symbolTable),
-        'goto IF_END' + index,
-        'label IF_FALSE' + index,
-        ...compileStatements(children[9], symbolTable),
-        'label IF_END' + index
+        ...conditionLines,
+        'if-goto ' + trueLabel,
+        ...elseLines,
+        'goto ' + endLabel,
+        'label ' + trueLabel,
+        ...ifLines,
+        'label ' + endLabel
     ];
 }
 
