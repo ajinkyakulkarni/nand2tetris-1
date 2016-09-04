@@ -57,9 +57,12 @@ export default function parse(line) {
             return {type: 'if-goto', label: elements[1]};
 
         case 'function':
-            return {type: 'function', name: elements[1], numArguments: parseInt(elements[2], 10)};
+            return {type: 'function', name: elements[1], numLocals: parseInt(elements[2], 10)};
 
         case 'return':
             return {type: 'return'};
+
+        case 'call':
+            return {type: 'call', name: elements[1], numArguments: parseInt(elements[2], 10)};
     }
 }

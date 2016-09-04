@@ -46,11 +46,15 @@ const tests = [
     },
     {
         line: 'function SimpleFunction.test 2',
-        command: {type: 'function', name: 'SimpleFunction.test', numArguments: 2}
+        command: {type: 'function', name: 'SimpleFunction.test', numLocals: 2}
     },
     {
         line: 'return',
         command: {type: 'return'}
+    },
+    {
+        line: 'call Main.fibonacci 1',
+        command: {type: 'call', name: 'Main.fibonacci', numArguments: 1}
     }
 ];
 

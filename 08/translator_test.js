@@ -54,7 +54,7 @@ const tests = [
         ]
     },
     {
-        command: {type: 'function', name: 'SimpleFunction.test', numArguments: 2},
+        command: {type: 'function', name: 'SimpleFunction.test', numLocals: 2},
         lines: [
             '(SimpleFunction.test)',
             '@SP', 'M=M+1', 'A=M-1', 'M=0', // Push 0
@@ -89,6 +89,26 @@ const tests = [
 
             // Goto return address
             '@R14', 'A=M', '0;JMP'
+        ]
+    },
+    {
+        command: {type: 'call', name: 'SimpleFunction.test', numArguments: 2},
+        lines: [
+            // Save return address.
+            '@LABEL0', 'D=A', '@SP', 'M=M+1', 'A=M-1', 'M=D',
+            // Save LCL, ARG, THIS and THAT.
+            '@LCL', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D',
+            '@ARG', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D',
+            '@THIS', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D',
+            '@THAT', 'D=M', '@SP', 'M=M+1', 'A=M-1', 'M=D',
+            // Reposition ARG to SP - numArguments - 5.
+            '@SP', 'D=M', '@7', 'D=D-A', '@ARG', 'M=D',
+            // Reposition LCL to SP.
+            '@SP', 'D=M', '@LCL', 'M=D',
+            // Goto called function.
+            '@SimpleFunction.test', '0;JMP',
+            // Insert return label.
+            '(LABEL0)'
         ]
     }
 ];

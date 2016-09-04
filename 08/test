@@ -7,23 +7,19 @@ nocolor='\033[0m'
 
 cd $(dirname "${0}")
 
-# for testfile in $(ls *_test.js); do
-#     printf "${blue}→${nocolor} Test $testfile\n"
-#     ../node_modules/.bin/babel-node --presets es2015 "$testfile"
-# done
+for testfile in $(ls *_test.js); do
+    printf "${blue}→${nocolor} Test $testfile\n"
+    ../node_modules/.bin/babel-node --presets es2015 "$testfile"
+done
 
 for testfile in $(find * -name '*.tst' ! -name '*VME.tst'); do
-
-    if [ $testfile != "FunctionCalls/SimpleFunction/SimpleFunction.tst" ]; then
-        continue
-    fi
-
     printf "${blue}→${nocolor} Test $testfile\n"
 
+    testfiledir="${testfile%/*}"
     testfilebase="${testfile%.*}"
-    vmfile="$testfilebase".vm
+    asmfile="$testfilebase".asm
 
-    ../node_modules/.bin/babel-node --presets es2015 vm-cli.js "$vmfile"
+    ../node_modules/.bin/babel-node --presets es2015 vm-cli.js "$testfiledir"/*.vm "$asmfile"
 
     CPUEmulator.sh "$testfile"
 done
