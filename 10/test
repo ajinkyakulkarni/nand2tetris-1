@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e
+
+blue='\033[1;34m'
+nocolor='\033[0m'
+
+cd $(dirname "${0}")
+
+for testfile in $(ls *_test.js); do
+    printf "${blue}→${nocolor} Test $testfile\n"
+    ../node_modules/.bin/babel-node --presets es2015 "$testfile"
+done
+
+for jackfile in $(find * -name '*.jack'); do
+    printf "${blue}→${nocolor} Test $jackfile\n"
+
+    jackfilebase="${jackfile%.*}"
+    builtintokenizedfile="$jackfilebase"T.xml
+    diytokenizedfile="$jackfilebase"T.diy.xml
+    builtinparsedfile="$jackfilebase".xml
+    diyparsedfile="$jackfilebase".diy.xml
+
+    ../node_modules/.bin/babel-node --presets es2015 analyzer-cli.js "$jackfile" \
+        "$diytokenizedfile" "$diyparsedfile"
+
+    printf "Compare $builtintokenizedfile and $diytokenizedfile\n"
+
+    diff --ignore-all-space --unchanged-line-format="" \
+        --old-line-format="builtin line %dn: %L" --new-line-format="    diy line %dn: %L" \
+        "$builtintokenizedfile" "$diytokenizedfile"
+
+    printf "Files match.\n"
+
+    # printf "Compare $builtinparsedfile and $jackfilebase\n"
+    # diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \
+    #     --new-line-format="    diy line %dn: %L" "$builtinparsedfile" "$jackfilebase"
+    # printf "Files match.\n"
+done
