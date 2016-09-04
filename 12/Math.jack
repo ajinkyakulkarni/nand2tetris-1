@@ -1,0 +1,129 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A basic math library.
+ */
+class Math {
+    static Array powersOfTwo;
+
+    /** Initializes the library. */
+    function void init() {
+        var int i, powerOfTwo;
+
+        let powersOfTwo = Array.new(16);
+        let powerOfTwo = 1;
+        let i = 0;
+
+        while (i < 16) {
+            let powersOfTwo[i] = powerOfTwo;
+            let powerOfTwo = powerOfTwo + powerOfTwo;
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        if (x > 0) {
+            return x;
+        }
+        return -x;
+    }
+
+    /** Returns the i-th bit of x. */
+    function int bit(int x, int i) {
+        if ((powersOfTwo[i] & x) = 0) {
+            return 0;
+        }
+        return 1;
+    }
+
+    /** Returns the product of x and y. */
+    function int multiply(int x, int y) {
+        var int sum, shiftedX, i;
+
+        let sum = 0;
+        let shiftedX = x;
+        let i = 0;
+
+        while (i < 16) {
+            if (Math.bit(y, i) = 1) {
+                let sum = sum + shiftedX;
+            }
+            let shiftedX = shiftedX + shiftedX;
+            let i = i + 1;
+        }
+
+        return sum;
+    }
+
+    /** Returns the integer part of x/y, where x >= 0 and y >= 0. */
+    function int divideAbs(int x, int y) {
+        var int q, qy;
+
+        if ((y < 0) | (y > x)) {
+            return 0;
+        }
+
+        let q = Math.divideAbs(x, y + y);
+        let qy = q * y;
+
+        if ((x - (qy + qy)) < y) {
+            return q + q;
+        }
+
+        return q + q + 1;
+    }
+
+    /** Returns the integer part of x/y. */
+    function int divide(int x, int y) {
+        var int result;
+
+        let result = Math.divideAbs(Math.abs(x), Math.abs(y));
+
+        if (((x > 0) & (y > 0)) | ((x < 0) & (y < 0))) {
+            return result;
+        }
+
+        return -result;
+    }
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+        var int y, nextY, nextYSquared, i;
+
+        let y = 0;
+        let i = 7;
+
+        while (~(i < 0)) {
+            let nextY = y + powersOfTwo[i];
+            let nextYSquared = nextY * nextY;
+            if (~(nextYSquared > x) & (nextYSquared > 0)) {
+                let y = nextY;
+            }
+            let i = i - 1;
+        }
+
+        return y;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        }
+        return b;
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+        if (a > b) {
+            return b;
+        }
+        return a;
+    }
+}
