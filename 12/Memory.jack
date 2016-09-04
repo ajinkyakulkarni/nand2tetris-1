@@ -7,11 +7,13 @@
  * Memory operations library.
  */
 class Memory {
-    static int free;
+    static int headSegmentAddress; // Address of the first free segment.
 
     /** Initializes memory parameters. */
     function void init() {
-        let free = 2048;
+        let headSegmentAddress = 2048;           // The heap starts at memory address 2048.
+        do Memory.poke(headSegmentAddress, 14336);  //The heap covers addresses 2048-16383.
+        do Memory.poke(headSegmentAddress + 1, -1); // -1 indicates that there is no next segment.
         return;
     }
 
@@ -31,17 +33,69 @@ class Memory {
         return;
     }
 
-    /** finds and allocates from the heap a memory block of the
+    // Returns the address of the segment *before* the first segment large enough to allocate a
+    // memory block of the specified size.
+    function int findSegment(int size) {
+        var int address;
+        let address = headSegmentAddress;
+
+        while (Memory.peek(address) < size) {
+            let address = Memory.peek(address + 1);
+        }
+
+        return address;
+    }
+
+    /** Finds and allocates from the heap a memory block of the
      *  specified size and returns a reference to its base address. */
     function int alloc(int size) {
-        var int address;
-        let address = free;
-        let free = free + size;
-        return address;
+        var int prevAddress, curAddress, curLength, nextAddress;
+
+        // Find the first segment long enough to contain size, plus 1 word for storing the length.
+        let prevAddress = -1;
+        let curAddress = headSegmentAddress;
+        let curLength = Memory.peek(curAddress);
+
+        // Failure to find a large enough segment is not handled.
+        while (curLength < (size + 1)) {
+            let prevAddress = curAddress;
+            let curAddress = Memory.peek(curAddress + 1);
+            let curLength = Memory.peek(curAddress);
+        }
+
+        if (curLength < (size + 2)) {
+            // Not enough space remains for a new segment (requires minimum 2 words).
+            let nextAddress = Memory.peek(curAddress + 1);
+
+            // Update size to take the entire available space (minus the word used to store the
+            // segment length). This avoids leaving 1 empty word that never gets freed.
+            let size = curLength - 1;
+        } else {
+            // Enough space remains for a new segment.
+            let nextAddress = curAddress + size + 1;
+            do Memory.poke(nextAddress, curLength - size - 1);
+        }
+
+        // Link the previous segment to the next (or new) segment.
+        if (prevAddress = -1) {
+            let headSegmentAddress = nextAddress;
+        } else {
+            do Memory.poke(prevAddress + 1, nextAddress);
+        }
+
+        do Memory.poke(curAddress, size + 1);
+        return curAddress + 1;
     }
 
     /** De-allocates the given object and frees its space. */
     function void deAlloc(int object) {
+        var int address;
+        let address = object - 1;
+
+        // Insert the segment at the beginning of the list.
+        do Memory.poke(address + 1, headSegmentAddress);
+        let headSegmentAddress = address;
+
         return;
     }
 }
