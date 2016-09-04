@@ -11,12 +11,11 @@ export default function compile(jack) {
 export function compileClass({children}) {
     const symbolTable = new SymbolTable();
     const compiledLines = [];
-    let className;
 
     for (const child of children) {
         switch (child.type) {
             case 'identifier':
-                className = child.value;
+                symbolTable.className = child.value;
                 break;
 
             case 'classVarDec':
@@ -24,7 +23,7 @@ export function compileClass({children}) {
                 break;
 
             case 'subroutineDec':
-                compiledLines.push(...compileSubroutineDec(child, symbolTable, className));
+                compiledLines.push(...compileSubroutineDec(child, symbolTable));
                 break;
         }
     }
@@ -32,12 +31,40 @@ export function compileClass({children}) {
     return compiledLines;
 }
 
-export function compileSubroutineDec({children}, symbolTable, className) {
+export function compileSubroutineDec({children}, symbolTable) {
     const subroutineName = children[2].value;
+
     processParameterList(children[4], symbolTable);
+
     const subroutineBodyLines = compileSubroutineBody(children[6], symbolTable);
-    const numLocals = symbolTable.count('var');
-    return [`function ${className}.${subroutineName} ${numLocals}`, ...subroutineBodyLines];
+
+    const numFields = symbolTable.count('field');
+    const numVars = symbolTable.count('var');
+
+    switch (children[0].value) {
+        case 'constructor':
+            return [
+                `function ${symbolTable.className}.${subroutineName} ${numVars}`,
+                'push constant ' + numFields, // Allocate one word per field
+                'call Memory.alloc 1',        // Push the instance address on the stack
+                'pop pointer 0',              // Pop the instance address into pointer[0]
+                ...subroutineBodyLines
+            ];
+
+        case 'method':
+            return [
+                `function ${symbolTable.className}.${subroutineName} ${numVars}`,
+                'push argument 0', // Push `this` on the stack
+                'pop pointer 0',   // Pop `this` into pointer[0]
+                ...subroutineBodyLines
+            ];
+
+        case 'function':
+            return [
+                `function ${symbolTable.className}.${subroutineName} ${numVars}`,
+                ...subroutineBodyLines
+            ];
+    }
 }
 
 export function compileSubroutineBody({children}, symbolTable) {
@@ -89,6 +116,7 @@ export function compileStatements({children}, symbolTable) {
 }
 
 export function compileLetStatement({children}, symbolTable) {
+    console.log(children);
     return [
         ...compileExpression(children[children.length - 2], symbolTable),
         ...popTo(children[1], symbolTable)
@@ -151,25 +179,39 @@ export function compileReturnStatement({children}, symbolTable) {
 }
 
 export function compileSubroutineCall({children}, symbolTable) {
-    const compiledLines = [];
-    let functionName, expressionList;
-
     if (children[1].value === '(') {
-        functionName = children[0].value;
-        expressionList = children[2];
-    } else {
-        functionName = children[0].value + children[1].value + children[2].value;
-        expressionList = children[4];
+        // Method call on the current `this`.
+        const subroutineName = children[0].value;
+        const expressionList = children[2];
+        const numArguments = Math.floor((expressionList.children.length + 1) / 2);
+
+        return [
+            'push pointer 0',
+            ...compileExpressionList(expressionList, symbolTable),
+            `call ${symbolTable.className}.${subroutineName} ${numArguments + 1}`
+        ];
     }
 
-    const numArguments = (expressionList.children.length + 1) / 2;
+    const subroutineName = children[2].value;
+    const expressionList = children[4];
+    const numArguments = Math.floor((expressionList.children.length + 1) / 2);
 
-    compiledLines.push(
+    if (symbolTable.has(children[0].value)) {
+        // Method call on another instance.
+        const className = symbolTable.get(children[0].value).type;
+
+        return [
+            ...pushFrom(children[0], symbolTable),
+            ...compileExpressionList(expressionList, symbolTable),
+            `call ${className}.${subroutineName} ${numArguments + 1}`
+        ];
+    }
+
+    // Static call.
+    return [
         ...compileExpressionList(expressionList, symbolTable),
-        `call ${functionName} ${numArguments}`
-    );
-
-    return compiledLines;
+        `call ${children[0].value}.${subroutineName} ${numArguments}`
+    ];
 }
 
 export function compileExpressionList({children}, symbolTable) {
@@ -230,7 +272,7 @@ export function compileKeywordConstant({value}) {
             return ['push constant 0'];
 
         case 'this':
-            return ['push this 0'];
+            return ['push pointer 0'];
     }
 }
 
@@ -264,8 +306,7 @@ function popTo({value: varName}, symbolTable) {
             return [`pop static ${index}`];
 
         case 'field':
-            // TODO
-            return [];
+            return [`pop this ${index}`];
 
         case 'argument':
             return [`pop argument ${index}`];
@@ -283,8 +324,7 @@ function pushFrom({value: varName}, symbolTable) {
             return [`push static ${index}`];
 
         case 'field':
-            // TODO
-            return [];
+            return [`push this ${index}`];
 
         case 'argument':
             return [`push argument ${index}`];

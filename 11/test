@@ -14,7 +14,7 @@ cd $(dirname "${0}")
 
 for jackfile in $(find * -name '*.jack'); do
 
-    if [ "$jackfile" != "ConvertToBin/Main.jack" ]; then
+    if [ "$jackfile" != "Square/SquareGame.jack" ]; then
         continue
     fi
 

@@ -38,7 +38,7 @@ const tests = [
         ]
     },
     {
-        fn: compiler.compileExpressionList,
+        fn: node => compiler.compileExpressionList(node, new SymbolTable()),
         node: {type: 'expressionList', children: [
             {type: 'expression', children: [
                 {type: 'term', children: [
@@ -51,7 +51,7 @@ const tests = [
         ]
     },
     {
-        fn: compiler.compileDoStatement,
+        fn: node => compiler.compileDoStatement(node, new SymbolTable()),
         node: {type: 'doStatement', children: [
             {type: 'keyword', value: 'do'},
             {type: 'subroutineCall', children: [
@@ -98,7 +98,11 @@ const tests = [
         ]
     },
     {
-        fn: node => compiler.compileSubroutineDec(node, new SymbolTable(), 'TestClass'),
+        fn: node => {
+            const symbolTable = new SymbolTable();
+            symbolTable.className = 'TestClass';
+            return compiler.compileSubroutineDec(node, symbolTable);
+        },
         node: {type: 'subroutineDec', children: [
             {type: 'keyword', value: 'function'},
             {type: 'keyword', value: 'int'},
@@ -279,14 +283,121 @@ const tests = [
         lines: [
             'push constant 0',
             'not',
-            'not',
-            'if-goto IF_FALSE0',
+            'if-goto IF_TRUE0',
+            'goto IF_FALSE0',
+            'label IF_TRUE0',
             'push constant 0',
             'not',
             'return',
-            'goto IF_TRUE0',
-            'label IF_FALSE0',
-            'label IF_TRUE0'
+            'label IF_FALSE0'
+        ]
+    },
+    {
+        fn: node => {
+            const symbolTable = new SymbolTable();
+            symbolTable.className = 'TestClass';
+            return compiler.compileSubroutineDec(node, symbolTable);
+        },
+        node: {type: 'subroutineDec', children: [
+            {type: 'keyword', value: 'function'},
+            {type: 'keyword', value: 'int'},
+            {type: 'identifier', value: 'testFn'},
+            {type: 'symbol', value: '('},
+            {type: 'parameterList', children: [
+                {type: 'keyword', value: 'SomeClass'},
+                {type: 'identifier', value: 'testArg1'}
+            ]},
+            {type: 'symbol', value: ')'},
+            {type: 'subroutineBody', children: [
+                {type: 'symbol', value: '{'},
+                {type: 'statements', children: [
+                    {type: 'returnStatement', children: [
+                        {type: 'keyword', value: 'return'},
+                        {type: 'expression', children: [
+                            {type: 'term', children: [
+                                {type: 'subroutineCall', children: [
+                                    {type: 'identifier', value: 'testArg1'},
+                                    {type: 'symbol', value: '.'},
+                                    {type: 'identifier', value: 'getSomething'},
+                                    {type: 'symbol', value: '('},
+                                    {type: 'expressionList', children: []},
+                                    {type: 'symbol', value: ')'}
+                                ]}
+                            ]}
+                        ]},
+                        {type: 'symbol', value: ';'}
+                    ]}
+                ]},
+                {type: 'symbol', value: '}'}
+            ]}
+        ]},
+        lines: [
+            'function TestClass.testFn 0',
+            'push argument 0',
+            'call SomeClass.getSomething 1',
+            'return'
+        ]
+    },
+    {
+        fn: compiler.compileClass,
+        node: {type: 'class', children: [
+            {type: 'keyword', value: 'class'},
+            {type: 'identifier', value: 'TestClass'},
+            {type: 'symbol', value: '{'},
+            {type: 'classVarDec', children: [
+                {type: 'keyword', value: 'field'},
+                {type: 'keyword', value: 'int'},
+                {type: 'identifier', value: 'fieldValue'},
+                {type: 'symbol', value: ';'}
+            ]},
+            {type: 'subroutineDec', children: [
+                {type: 'keyword', value: 'constructor'},
+                {type: 'identifier', value: 'TestClass'},
+                {type: 'identifier', value: 'new'},
+                {type: 'symbol', value: '('},
+                {type: 'parameterList', children: [
+                    {type: 'keyword', value: 'int'},
+                    {type: 'identifier', value: 'argValue'}
+                ]},
+                {type: 'symbol', value: ')'},
+                {type: 'subroutineBody', children: [
+                    {type: 'symbol', value: '{'},
+                    {type: 'statements', children: [
+                        {type: 'letStatement', children: [
+                            {type: 'keyword', value: 'let'},
+                            {type: 'identifier', value: 'fieldValue'},
+                            {type: 'symbol', value: '='},
+                            {type: 'expression', children: [
+                                {type: 'term', children: [
+                                    {type: 'identifier', value: 'argValue'}
+                                ]}
+                            ]},
+                            {type: 'symbol', value: ';'}
+                        ]},
+                        {type: 'returnStatement', children: [
+                            {type: 'keyword', value: 'return'},
+                            {type: 'expression', children: [
+                                {type: 'term', children: [
+                                    {type: 'keyword', value: 'this'}
+                                ]}
+                            ]},
+                            {type: 'symbol', value: ';'}
+                        ]}
+                    ]},
+                    {type: 'symbol', value: '}'}
+                ]}
+            ]},
+            {type: 'symbol', value: '}'}
+        ]},
+        lines: [
+            'function TestClass.new 0',
+            'push constant 1',     // Allocate one word
+            'call Memory.alloc 1', // Push the instance address on the stack
+            'pop pointer 0',       // Pop the instance address into pointer[0]
+            'push argument 0',     // Push argValue on the stack
+            'pop this 0',          // Pop argValue into fieldValue,
+            'push pointer 0',      // Push the instance address on the stack, as return value
+            'return'
         ]
     }
 ];
