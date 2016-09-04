@@ -201,7 +201,7 @@ class Output {
         return;
     }
 
-    /** Returns the i-th bit of x. */
+    // Returns the i-th bit of x.
     function int bit(int x, int i) {
         if ((powersOfTwo[i] & x) = 0) {
             return 0;

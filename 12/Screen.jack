@@ -71,7 +71,7 @@ class Screen {
         return;
     }
 
-    /** Draws a horizontal line from (x1, y) to (x2, y). */
+    // Draws a horizontal line from (x1, y) to (x2, y).
     function void drawHorizontalLine(int x1, int x2, int y) {
         var int wordColor, x, xDiv16;
 

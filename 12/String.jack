@@ -54,7 +54,7 @@ class String {
         return;
     }
 
-    /** Returns whether the character c is a digit. */
+    // Returns whether the character c is a digit.
     function boolean isDigit(char c) {
         // 0-9 have character codes 48-57.
         return (c > 47) & (c < 58);
@@ -93,7 +93,7 @@ class String {
         return absValue;
     }
 
-    /** Reverses this String. **/
+    // Reverses this String.
     method void reverse() {
         var int halfLength, i;
         var char tmp;
