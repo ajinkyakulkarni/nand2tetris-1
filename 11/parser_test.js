@@ -81,6 +81,37 @@ const tests = [
         ]}
     },
     {
+        fn: parser.parseOptionalStatement,
+        tokens: [
+            {type: 'keyword', value: 'if'},
+            {type: 'symbol', value: '('},
+            {type: 'identifier', value: 'x'},
+            {type: 'symbol', value: ')'},
+            {type: 'symbol', value: '{'},
+            {type: 'symbol', value: '}'},
+            {type: 'keyword', value: 'else'},
+            {type: 'symbol', value: '{'},
+            {type: 'symbol', value: '}'}
+        ],
+        tree: {type: 'ifStatement', children: [
+            {type: 'keyword', value: 'if'},
+            {type: 'symbol', value: '('},
+            {type: 'expression', children: [
+                {type: 'term', children: [
+                    {type: 'identifier', value: 'x'}
+                ]}
+            ]},
+            {type: 'symbol', value: ')'},
+            {type: 'symbol', value: '{'},
+            {type: 'statements', children: []},
+            {type: 'symbol', value: '}'},
+            {type: 'keyword', value: 'else'},
+            {type: 'symbol', value: '{'},
+            {type: 'statements', children: []},
+            {type: 'symbol', value: '}'}
+        ]}
+    },
+    {
         fn: parser.parseStatements,
         tokens: [
             {type: 'keyword', value: 'let'},
@@ -151,18 +182,20 @@ const tests = [
         ],
         tree: {type: 'doStatement', children: [
             {type: 'keyword', value: 'do'},
-            {type: 'identifier', value: 'Memory'},
-            {type: 'symbol', value: '.'},
-            {type: 'identifier', value: 'deAlloc'},
-            {type: 'symbol', value: '('},
-            {type: 'expressionList', children: [
-                {type: 'expression', children: [
-                    {type: 'term', children: [
-                        {type: 'identifier', value: 'square'}
+            {type: 'subroutineCall', children: [
+                {type: 'identifier', value: 'Memory'},
+                {type: 'symbol', value: '.'},
+                {type: 'identifier', value: 'deAlloc'},
+                {type: 'symbol', value: '('},
+                {type: 'expressionList', children: [
+                    {type: 'expression', children: [
+                        {type: 'term', children: [
+                            {type: 'identifier', value: 'square'}
+                        ]}
                     ]}
-                ]}
+                ]},
+                {type: 'symbol', value: ')'}
             ]},
-            {type: 'symbol', value: ')'},
             {type: 'symbol', value: ';'}
         ]}
     },

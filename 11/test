@@ -7,14 +7,14 @@ nocolor='\033[0m'
 
 cd $(dirname "${0}")
 
-for testfile in $(ls *_test.js); do
-    printf "${blue}→${nocolor} Test $testfile\n"
-    ../node_modules/.bin/babel-node --presets es2015 "$testfile"
-done
+# for testfile in $(ls *_test.js); do
+#     printf "${blue}→${nocolor} Test $testfile\n"
+#     ../node_modules/.bin/babel-node --presets es2015 "$testfile"
+# done
 
 for jackfile in $(find * -name '*.jack'); do
 
-    if [ "$jackfile" != "Seven/Main.jack" ]; then
+    if [ "$jackfile" != "ConvertToBin/Main.jack" ]; then
         continue
     fi
 
@@ -24,6 +24,7 @@ for jackfile in $(find * -name '*.jack'); do
     builtinvmfile="$jackfilebase".vm
     diyvmfile="$jackfilebase".diy.vm
 
+    JackCompiler.sh "$jackfile"
     ../node_modules/.bin/babel-node --presets es2015 compiler-cli.js "$jackfile" "$diyvmfile"
 
     diff --unchanged-line-format="" --old-line-format="builtin line %dn: %L" \

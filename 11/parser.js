@@ -252,6 +252,7 @@ export function parseIfStatement(tokens, start) {
     children.push(tokens[start++]); // symbol: }
 
     if (isKeyword(tokens[start], 'else')) {
+        children.push(tokens[start++]); // keyword: else
         children.push(tokens[start++]); // symbol: {
 
         const statements = parseStatements(tokens, start);
@@ -298,8 +299,8 @@ export function parseDoStatement(tokens, start) {
     children.push(tokens[start++]); // keyword: do
 
     const subroutineCall = parseOptionalSubroutineCall(tokens, start);
-    if (subroutineCall.siblings) {
-        children.push(...subroutineCall.siblings);
+    if (subroutineCall.node) {
+        children.push(subroutineCall.node);
         start = subroutineCall.nextTokenIndex;
     }
 
@@ -372,8 +373,8 @@ export function parseTerm(tokens, start) {
     } else {
         const subroutineCall = parseOptionalSubroutineCall(tokens, start);
 
-        if (subroutineCall.siblings) {
-            children.push(...subroutineCall.siblings);
+        if (subroutineCall.node) {
+            children.push(subroutineCall.node);
             start = subroutineCall.nextTokenIndex;
         } else {
             children.push(tokens[start++]); // identifier: varName
@@ -403,28 +404,25 @@ export function parseOptionalSubroutineCall(tokens, start) {
         isIdentifier(tokens[start + 2]) && isSymbol(tokens[start + 3], '(');
 
     if (!pattern1 && !pattern2) {
-        return {
-            siblings: null,
-            nextTokenIndex: start
-        };
+        return {node: null, nextTokenIndex: start};
     }
 
-    const siblings = [];
+    const children = [];
 
     while (!isSymbol(tokens[start], '(')) {
-        siblings.push(tokens[start++]);
+        children.push(tokens[start++]);
     }
 
-    siblings.push(tokens[start++]); // symbol: (
+    children.push(tokens[start++]); // symbol: (
 
     const expressionList = parseExpressionList(tokens, start);
-    siblings.push(expressionList.node);
+    children.push(expressionList.node);
     start = expressionList.nextTokenIndex;
 
-    siblings.push(tokens[start++]); // symbol: )
+    children.push(tokens[start++]); // symbol: )
 
     return {
-        siblings,
+        node: {type: 'subroutineCall', children},
         nextTokenIndex: start
     };
 }
